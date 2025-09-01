@@ -9,7 +9,7 @@ from sklearn.model_selection import GridSearchCV
 
 # Paths
 DATA_PATH = "../dataset/df_final_with_sector_and_group (1).xlsx"
-MODEL_PATH = "../backend/models/model (1).pkl"
+MODEL_PATH = "../backend/models/model.pkl"
 ENCODER_PATH = "../backend/models/sector_encoder.pkl"
 
 # Liste des secteurs autorisés

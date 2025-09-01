@@ -19,7 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_PATH = "backend/models/model (1).pkl"
+MODEL_PATH = "backend/models/model.pkl"
 ENCODER_PATH = "backend/models/sector_encoder.pkl"
 
 # Charger modèle et encodeur
