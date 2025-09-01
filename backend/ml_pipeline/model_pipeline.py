@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import GridSearchCV
 
 # Paths
-DATA_PATH = "../dataset/df_final_with_sector_and_group (1).xlsx"
+DATA_PATH = "../dataset/df_final_with_sector_and_group.xlsx"
 MODEL_PATH = "../backend/models/model.pkl"
 ENCODER_PATH = "../backend/models/sector_encoder.pkl"
 
