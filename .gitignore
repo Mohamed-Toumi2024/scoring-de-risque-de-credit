@@ -1,27 +1,50 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Voir https://help.github.com/articles/ignoring-files/
 
-# dependencies
-/node_modules
+# === Python ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+*.sqlite3
+*.db
 
-# next.js
-/.next/
-/out/
+# === Environnements virtuels ===
+.venv/
+venv/
+env/
 
-# production
-/build
+# === Fichiers de logs ===
+*.log
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+# === Données & modèles ===
+*.h5
+*.pt
+*.pth
+*.joblib
+*.model
+*.pickle
 
-# env files
+# === Config & secrets ===
 .env*
+secrets.json
+config.json
 
-# vercel
-.vercel
+# === FastAPI & build ===
+/dist/
+/build/
+/.uvicorn/
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# === Tests ===
+.coverage
+.pytest_cache/
+
+# === Dossiers spécifiques projet ===
+backend/ml_pipeline/venv/
+scripts/__pycache__/
+
+# === Node/Next.js (si besoin reste) ===
+node_modules/
+.next/
+out/
+.vercel/
