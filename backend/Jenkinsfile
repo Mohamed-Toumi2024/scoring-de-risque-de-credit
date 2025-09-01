@@ -18,12 +18,13 @@ pipeline {
             steps {
                 echo 'Création de l’environnement virtuel et installation des dépendances...'
                 sh '''
-                    if [ ! -d "$VENV" ]; then
-                        python3 -m venv $VENV
-                    fi
-                    source $VENV/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
+                #!/bin/bash
+                if [ ! -d "$VENV" ]; then
+                    python3 -m venv $VENV
+                fi
+                . $VENV/bin/activate
+                pip install --upgrade pip
+                pip install -r backend/requirements.txt
                 '''
             }
         }
@@ -32,8 +33,9 @@ pipeline {
             steps {
                 echo 'Entraînement du modèle XGBoost...'
                 sh '''
-                    source $VENV/bin/activate
-                    python model_pipeline.py
+                #!/bin/bash
+                . $VENV/bin/activate
+                python backend/ml_pipeline/model_pipeline.py
                 '''
             }
         }
@@ -42,9 +44,10 @@ pipeline {
             steps {
                 echo 'Lancement de l’API FastAPI...'
                 sh '''
-                    source $VENV/bin/activate
-                    nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
-                    sleep 5
+                #!/bin/bash
+                . $VENV/bin/activate
+                nohup uvicorn backend.main:app --host 0.0.0.0 --port 8000 &
+                sleep 5
                 '''
             }
         }
@@ -53,7 +56,8 @@ pipeline {
             steps {
                 echo 'Test de l’API pour vérifier le déploiement...'
                 sh '''
-                    curl -f http://127.0.0.1:8000/docs || exit 1
+                #!/bin/bash
+                curl -f http://127.0.0.1:8000/docs || exit 1
                 '''
             }
         }
