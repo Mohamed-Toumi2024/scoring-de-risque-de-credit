@@ -1,3 +1,4 @@
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -6,7 +7,6 @@ import pandas as pd
 import joblib
 import logging
 
-# ---------------- CONFIG ----------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -19,17 +19,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-import os
-
-# Base du projet (répertoire où se trouve ce fichier, puis on remonte d’un cran)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(BASE_DIR, "backend", "models", "model.pkl")
-ENCODER_PATH = os.path.join(BASE_DIR, "backend", "models", "sector_encoder.pkl")
+BACKEND_DIR   = Path(__file__).resolve().parent              # .../backend
+MODEL_PATH    = BACKEND_DIR / "models"  / "model.pkl"
+ENCODER_PATH  = BACKEND_DIR / "models"  / "sector_encoder.pkl"
+EXCEL_PATH    = BACKEND_DIR / "dataset" / "entreprises.xlsx"  # adapte si besoin
 
 # Charger modèle et encodeur
 try:
-    model = joblib.load(MODEL_PATH)
-    sector_encoder = joblib.load(ENCODER_PATH)
+    model = joblib.load(str(MODEL_PATH))
+    sector_encoder = joblib.load(str(ENCODER_PATH))
     logger.info("✅ Modèle et encodeur chargés")
 except Exception as e:
     logger.error(f"❌ Impossible de charger modèle/encodeur : {e}")
@@ -37,7 +35,6 @@ except Exception as e:
 
 ALL_SECTORS = sector_encoder.classes_.tolist() if sector_encoder else []
 
-# ---------------- INPUT ----------------
 class PredictionInput(BaseModel):
     rentabilite_nette: float
     rentabilite_capitaux: float
@@ -61,25 +58,18 @@ class PredictionInput(BaseModel):
         v = v.strip().upper()
         if v == "SANTE": v = "SANTÉ"
         elif v == "IMMOBILIER": v = "PROMOTION IMMOBILIERE"
-        if v not in ALL_SECTORS:
+        if ALL_SECTORS and v not in ALL_SECTORS:
             raise ValueError(f"Secteur invalide. Secteurs valides : {', '.join(ALL_SECTORS)}")
         return v
 
-# ---------------- ENDPOINTS ----------------
 @app.post("/form")
 async def make_prediction(input_data: PredictionInput):
     if model is None or sector_encoder is None:
         raise HTTPException(status_code=500, detail="Modèle ou encodeur non chargé")
-
     try:
-        input_dict = input_data.dict()
-        df = pd.DataFrame([input_dict])
-
-        # Encoder le secteur
+        df = pd.DataFrame([input_data.dict()])
         df['SECTEUR'] = sector_encoder.transform(df['secteur'])
         df.drop(columns=['secteur'], inplace=True)
-
-        # Colonnes attendues par le modèle (exactement celles de l'entraînement)
         expected_columns = [
             'rentabilite_nette', 'rentabilite_capitaux', 'autonomie_financiere',
             'capacite_remboursement', 'poids_impayes', 'endettement_total',
@@ -88,33 +78,27 @@ async def make_prediction(input_data: PredictionInput):
             'fonds_de_roulement_net', 'rotation_stock', 'Groupe', 'SECTEUR'
         ]
         df = df[expected_columns]
-
         prediction = int(model.predict(df)[0])
         probability = float(model.predict_proba(df)[0][1])
-
-        risk_level = (
-            "FAIBLE" if probability < 0.3 else
-            "MODÉRÉ" if probability < 0.6 else
-            "ÉLEVÉ" if probability < 0.8 else
-            "CRITIQUE"
-        )
-
+        risk_level = ("FAIBLE" if probability < 0.3 else
+                      "MODÉRÉ" if probability < 0.6 else
+                      "ÉLEVÉ"  if probability < 0.8 else
+                      "CRITIQUE")
         return {
             "prediction": prediction,
             "probability": round(probability, 3),
             "risk_level": risk_level,
             "secteur": input_data.secteur
         }
-
     except Exception as e:
         logger.error(f"Erreur prédiction : {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.get("/predict")
 def get_dashboard_data():
     try:
-        df = pd.read_excel("entreprises.xlsx")
+        logger.info(f"Lecture dashboard depuis: {EXCEL_PATH}")
+        df = pd.read_excel(str(EXCEL_PATH))
         df.drop(columns=["Unnamed: 0"], inplace=True, errors='ignore')
         df = df.rename(columns={
             "ID": "id",
@@ -133,7 +117,3 @@ def get_dashboard_data():
     except Exception as e:
         logger.error(f"Erreur dashboard : {e}")
         return JSONResponse(content={"error": str(e)}, status_code=500)
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
