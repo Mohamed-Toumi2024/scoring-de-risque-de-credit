@@ -19,8 +19,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_PATH = "backend/models/model.pkl"
-ENCODER_PATH = "backend/models/sector_encoder.pkl"
+import os
+
+# Base du projet (répertoire où se trouve ce fichier, puis on remonte d’un cran)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(BASE_DIR, "backend", "models", "model.pkl")
+ENCODER_PATH = os.path.join(BASE_DIR, "backend", "models", "sector_encoder.pkl")
 
 # Charger modèle et encodeur
 try:

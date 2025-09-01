@@ -6,11 +6,15 @@ import os
 from xgboost import XGBClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import GridSearchCV
+import os
 
-# Paths
-DATA_PATH = "/backend/dataset/df_final_with_sector_and_group.xlsx"
-MODEL_PATH = "/backend/models/model.pkl"
-ENCODER_PATH = "/backend/models/sector_encoder.pkl"
+# Base du projet (répertoire où se trouve ce fichier, puis on remonte d’un cran)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+DATA_PATH = os.path.join(BASE_DIR, "backend", "dataset", "df_final_with_sector_and_group.xlsx")
+MODEL_PATH = os.path.join(BASE_DIR, "backend", "models", "model.pkl")
+ENCODER_PATH = os.path.join(BASE_DIR, "backend", "models", "sector_encoder.pkl")
+
 
 # Liste des secteurs autorisés
 ALL_SECTORS = [
