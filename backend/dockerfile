@@ -12,8 +12,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copier le reste du code
 COPY . .
 
+# ⚡ Lancer l'entraînement pour générer model.pkl et encoder.pkl
+RUN python model_pipeline.py
+
 # Exposer le port FastAPI
 EXPOSE 8000
 
 # Lancer le serveur
-CMD ["uvicorn", "fastapi_backend:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
