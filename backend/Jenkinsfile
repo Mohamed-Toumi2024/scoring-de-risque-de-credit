@@ -4,6 +4,8 @@ pipeline {
     environment {
         PYTHON = "/usr/bin/python3"
         VENV = ".venv"
+        IMAGE_NAME = "fastapi-app"
+        CONTAINER_NAME = "fastapi-container"
     }
 
     stages {
@@ -57,6 +59,36 @@ pipeline {
                 echo 'Test de l’API pour vérifier le déploiement...'
                 sh '''
                 #!/bin/bash
+                curl -f http://127.0.0.1:8000/docs || exit 1
+                '''
+            }
+        }
+
+        // 🚀 Nouveaux stages pour Dockerisation
+        stage('Build Docker Image') {
+            steps {
+                echo 'Construction de l’image Docker...'
+                sh '''
+                docker build -t $IMAGE_NAME ./backend
+                '''
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                echo 'Lancement du container Docker...'
+                sh '''
+                docker rm -f $CONTAINER_NAME || true
+                docker run -d --name $CONTAINER_NAME -p 8000:8000 $IMAGE_NAME
+                sleep 5
+                '''
+            }
+        }
+
+        stage('Test API in Docker') {
+            steps {
+                echo 'Test de l’API dans le container...'
+                sh '''
                 curl -f http://127.0.0.1:8000/docs || exit 1
                 '''
             }

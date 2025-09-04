@@ -12,8 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copier le reste du code
 COPY . .
 
-# ⚡ Lancer l'entraînement pour générer model.pkl et encoder.pkl
-RUN python model_pipeline.py
+# Étape d'entraînement du modèle
+RUN python ml_pipeline/model_pipeline.py
 
 # Exposer le port FastAPI
 EXPOSE 8000
