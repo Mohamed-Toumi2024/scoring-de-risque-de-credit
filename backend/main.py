@@ -7,6 +7,9 @@ import pandas as pd
 import joblib
 import logging
 
+# 🔹 Import pour Prometheus
+from prometheus_fastapi_instrumentator import Instrumentator
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -117,3 +120,8 @@ def get_dashboard_data():
     except Exception as e:
         logger.error(f"Erreur dashboard : {e}")
         return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+# 🔹 Instrumentation Prometheus
+instrumentator = Instrumentator().instrument(app)
+instrumentator.expose(app)
