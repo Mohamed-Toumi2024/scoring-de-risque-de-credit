@@ -26,7 +26,7 @@ pipeline {
                 fi
                 . $VENV/bin/activate
                 pip install --upgrade pip
-                pip install -r backend/requirements.txt
+                pip install -r backend/ml_pipeline/requirements.txt
                 '''
             }
         }
@@ -37,7 +37,7 @@ pipeline {
                 sh '''
                 #!/bin/bash
                 . $VENV/bin/activate
-                python backend/ml_pipeline/model_pipeline.py
+                python backend/model_pipeline.py
                 '''
             }
         }
@@ -54,15 +54,29 @@ pipeline {
             }
         }
 
-        stage('Test API') {
-            steps {
-                echo 'Test de l’API pour vérifier le déploiement...'
-                sh '''
-                #!/bin/bash
-                curl -f http://127.0.0.1:8000/docs || exit 1
-                '''
+      stage('Test API') {
+    steps {
+        echo 'Test de l’API pour vérifier le déploiement...'
+        script {
+            def retries = 5
+            def success = false
+            for (int i = 0; i < retries; i++) {
+                try {
+                    sh 'curl -f http://127.0.0.1:8000/docs'
+                    success = true
+                    break
+                } catch (err) {
+                    echo "API not ready yet, retrying..."
+                    sleep 5
+                }
+            }
+            if (!success) {
+                error "API test failed after retries"
             }
         }
+    }
+}
+
 
         // 🚀 Nouveaux stages pour Dockerisation
         stage('Build Docker Image') {
