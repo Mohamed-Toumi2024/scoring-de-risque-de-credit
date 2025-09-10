@@ -7,3 +7,4 @@ joblib
 scikit-learn
 openpyxl
 xgboost 
+prometheus_fastapi_instrumentator
