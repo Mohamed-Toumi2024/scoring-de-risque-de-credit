@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, TrendingUp, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { PredictionForm } from "@/components/prediction-form"
@@ -14,6 +13,7 @@ export interface PredictionData {
   capacite_remboursement: number
   effort_investissement: number
   rentabilite_nette: number
+  rentabilite_capitaux: number
   endettement_total: number
   levier_bancaire: number
   efficacite_exploitation: number
@@ -22,8 +22,9 @@ export interface PredictionData {
   autonomie_financiere: number
   poids_impayes: number
   liquidite_generale: number
+  rotation_stock: number
   secteur: string
-  groupe: number
+  Groupe: number
 }
 
 export interface PredictionResponse {
@@ -46,37 +47,29 @@ export default function PredictPage() {
   const handlePredict = async (data: PredictionData) => {
     setLoading(true)
     try {
-      const response = await fetch("/api/form", {
+      const response = await fetch("http://localhost:8000/form", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la prédiction")
-      }
-
+      if (!response.ok) throw new Error("Erreur lors de la prédiction")
       const result = await response.json()
       setPredictionResult(result)
     } catch (error) {
-      console.error("Erreur:", error)
+      console.error(error)
       alert("Erreur lors de la prédiction. Veuillez réessayer.")
     } finally {
       setLoading(false)
     }
   }
 
-  const resetPrediction = () => {
-    setPredictionResult(null)
-  }
+  const resetPrediction = () => setPredictionResult(null)
 
   return (
     <div className="min-h-screen animated-bg">
       <div className="min-h-screen bg-gradient-to-br from-slate-50/90 via-blue-50/90 to-indigo-50/90 backdrop-blur-sm">
         <div className="container mx-auto p-6 space-y-8">
-          {/* Header avec effet glass */}
+          {/* Header */}
           <div className="glass rounded-2xl p-6 border border-white/20 shadow-xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-6">
@@ -99,13 +92,12 @@ export default function PredictPage() {
                   </p>
                 </div>
               </div>
-           
             </div>
           </div>
 
-          {/* Content avec grille améliorée */}
+          {/* Formulaire et résultat */}
           <div className="grid gap-8 lg:grid-cols-2">
-            {/* Formulaire avec style amélioré */}
+            {/* Formulaire */}
             <Card className="lg:sticky lg:top-6 glass border-white/20 shadow-2xl card-hover">
               <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-xl">
                 <CardTitle className="flex items-center space-x-3 text-xl">
@@ -123,7 +115,7 @@ export default function PredictPage() {
               </CardContent>
             </Card>
 
-            {/* Résultats avec style amélioré */}
+            {/* Résultat */}
             <div className="space-y-6">
               {predictionResult ? (
                 <PredictionResult result={predictionResult} onReset={resetPrediction} />
@@ -136,20 +128,8 @@ export default function PredictPage() {
                     <div className="space-y-2">
                       <h3 className="text-2xl font-bold text-gray-800">En attente de prédiction</h3>
                       <p className="text-gray-600 max-w-md">
-                        Remplissez le formulaire avec les données financières pour obtenir une analyse de risque
-                        détaillée
+                        Remplissez le formulaire avec les données financières pour obtenir une analyse de risque détaillée
                       </p>
-                    </div>
-                    <div className="flex justify-center space-x-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                      <div
-                        className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-pink-500 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
                     </div>
                   </div>
                 </Card>
