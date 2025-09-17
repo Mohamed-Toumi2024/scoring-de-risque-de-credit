@@ -1,22 +1,13 @@
 FROM python:3.10
 
-# Définir le dossier de travail
 WORKDIR /app
 
-# Copier requirements.txt
 COPY requirements.txt .
-
-# Installer les dépendances
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copier le reste du code
 COPY . .
 
-# Étape d'entraînement du modèle
-RUN python ml_pipeline/model_pipeline.py
-
-# Exposer le port FastAPI
 EXPOSE 8000
 
-# Lancer le serveur
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Lancer d'abord le pipeline, puis l'API
+CMD ["sh", "-c", "python ml_pipeline/model_pipeline.py && uvicorn main:app --host 0.0.0.0 --port 8000"]

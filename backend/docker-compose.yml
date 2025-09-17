@@ -1,10 +1,10 @@
-version: '3.8'
-
 services:
   web:
-    image: fastapi-app   # Utilise l'image déjà construite
+    image: fastapi-app
     ports:
       - "8000:8000"
+    depends_on:
+      - airflow-webserver
 
   prometheus:
     image: prom/prometheus
@@ -17,3 +17,61 @@ services:
     image: grafana/grafana
     ports:
       - "3000:3000"
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow   # <- Dockerfile custom
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      PYTHONPATH: /opt/airflow/backend
+      AIRFLOW__WEBSERVER__SECRET_KEY: "mon_super_secret"
+      AIRFLOW__LOGGING__REMOTE_LOGGING: "False"
+      AIRFLOW__LOGGING__BASE_LOG_FOLDER: "/opt/airflow/logs"
+    depends_on:
+      - postgres
+    volumes:
+      - .:/opt/airflow/backend
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+    ports:
+      - "8081:8080"
+    command: >
+      bash -c "airflow db migrate &&
+               airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || true &&
+               exec airflow webserver"
+
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow   # <- Dockerfile custom
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      PYTHONPATH: /opt/airflow/backend
+      AIRFLOW__WEBSERVER__SECRET_KEY: "mon_super_secret"
+      AIRFLOW__LOGGING__REMOTE_LOGGING: "False"
+      AIRFLOW__LOGGING__BASE_LOG_FOLDER: "/opt/airflow/logs"
+    depends_on:
+      - postgres
+      - airflow-webserver
+    volumes:
+      - .:/opt/airflow/backend
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+    command: >
+      bash -c "airflow db migrate &&
+               exec airflow scheduler"
+
+volumes:
+  postgres_data:

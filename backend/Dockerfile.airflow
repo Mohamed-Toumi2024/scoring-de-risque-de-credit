@@ -1,0 +1,11 @@
+FROM apache/airflow:2.7.2
+
+# Installer tes dépendances ML
+RUN pip install --no-cache-dir \
+    pandas \
+    scikit-learn \
+    xgboost \
+    joblib \
+    openpyxl \
+    python-multipart==0.0.6 \
+    pydantic==2.5.0
