@@ -42,18 +42,23 @@ export default function Dashboard() {
     fetchData()
   }, [])
 
-  const fetchData = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/predict")
-      const data = await response.json()
-      setEnterprises(data.enterprises)
+const fetchData = async () => {
+  try {
+    const response = await fetch("http://localhost:8000/predict")
+    const data = await response.json()
+    setEnterprises(data.enterprises ?? [])
+    if (data.stats) {
       setStats(data.stats)
-    } catch (error) {
-      console.error("Erreur lors du chargement des données:", error)
-    } finally {
-      setLoading(false)
+    } else {
+      console.warn("⚠️ Pas de stats dans la réponse:", data)
     }
+  } catch (error) {
+    console.error("Erreur lors du chargement des données:", error)
+  } finally {
+    setLoading(false)
   }
+}
+
 
   if (loading) {
     return (
